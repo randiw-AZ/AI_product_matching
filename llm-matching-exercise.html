@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Match the Company/Country, AI Product, and CEO</title>
+<style>
+  :root {
+    --az-red: #AB0520;
+    --az-red-dark: #7C0A17;
+    --az-blue: #0C234B;
+    --az-blue-light: #1E3A66;
+    --az-oasis: #378DBD;
+    --paper: #FAF8F5;
+    --ink: #1A1A1A;
+    --correct: #2E7D32;
+    --correct-bg: #E7F5E8;
+    --incorrect: #AB0520;
+    --incorrect-bg: #FBE9EB;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+    line-height: 1.5;
+  }
+
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 0 3rem;
+  }
+
+  header {
+    background: var(--az-blue);
+    color: white;
+    padding: 2.25rem 2rem 2rem;
+    border-bottom: 6px solid var(--az-red);
+  }
+
+  header .kicker {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    color: #B7C4D8;
+    margin: 0 0 0.4rem;
+  }
+
+  header h1 {
+    margin: 0 0 0.6rem;
+    font-size: 1.9rem;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  header p {
+    margin: 0;
+    max-width: 60ch;
+    color: #DCE3EE;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 0.98rem;
+  }
+
+  .intro {
+    padding: 1.75rem 2rem 0.5rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  .intro p {
+    color: #333;
+    font-size: 0.98rem;
+  }
+
+  .board {
+    padding: 1rem 2rem 0;
+  }
+
+  table.match {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 1px 3px rgba(12,35,75,0.15);
+  }
+
+  table.match thead th {
+    background: var(--az-red);
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-align: left;
+    padding: 0.75rem 0.9rem;
+  }
+
+  table.match tbody tr {
+    border-bottom: 1px solid #E5DFD5;
+  }
+
+  table.match td {
+    padding: 0.85rem 0.9rem;
+    vertical-align: middle;
+  }
+
+  .company-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+
+  .badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .company-name {
+    font-weight: 700;
+    font-size: 1.02rem;
+  }
+
+  select {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 0.92rem;
+    border: 1.5px solid #C9C2B3;
+    border-radius: 4px;
+    background: #FFFDFA;
+    color: var(--ink);
+  }
+
+  select:focus {
+    outline: 3px solid var(--az-oasis);
+    outline-offset: 1px;
+  }
+
+  td.feedback-cell {
+    width: 34px;
+    text-align: center;
+    font-size: 1.15rem;
+  }
+
+  tr.is-correct td { background: var(--correct-bg); }
+  tr.is-incorrect td { background: var(--incorrect-bg); }
+
+  .bonus-row td { border-top: 2px dashed #C9C2B3; }
+  .bonus-label {
+    display: inline-block;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--az-red-dark);
+    background: #FCE9EA;
+    border: 1px solid var(--az-red);
+    border-radius: 3px;
+    padding: 0.1rem 0.4rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.4rem 2rem;
+    flex-wrap: wrap;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.65rem 1.4rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+  }
+
+  #checkBtn {
+    background: var(--az-red);
+    color: white;
+  }
+  #checkBtn:hover { background: var(--az-red-dark); }
+
+  #resetBtn {
+    background: transparent;
+    color: var(--az-blue);
+    border: 1.5px solid var(--az-blue);
+  }
+  #resetBtn:hover { background: #EEF2F7; }
+
+  #score {
+    font-weight: 700;
+    color: var(--az-blue);
+    font-size: 1rem;
+  }
+
+  #score .max { color: #6B7280; font-weight: 400; }
+
+  .notes {
+    margin: 0 2rem 1.5rem;
+    padding: 1rem 1.2rem;
+    background: #EEF2F7;
+    border-left: 4px solid var(--az-oasis);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 0.88rem;
+    color: #333;
+    display: none;
+  }
+
+  .notes.visible { display: block; }
+
+  .notes h2 {
+    margin: 0 0 0.5rem;
+    font-size: 0.95rem;
+    color: var(--az-blue);
+  }
+
+  .notes ul { margin: 0; padding-left: 1.2rem; }
+  .notes li { margin-bottom: 0.3rem; }
+
+  @media (max-width: 600px) {
+    header { padding: 1.5rem 1.2rem; }
+    .intro, .board, .controls, .notes { padding-left: 1.2rem; padding-right: 1.2rem; }
+    table.match thead { display: none; }
+    table.match, table.match tbody, table.match tr, table.match td { display: block; width: 100%; }
+    table.match tr { padding: 0.8rem 0; }
+    table.match td { padding: 0.35rem 0; }
+    td.feedback-cell { text-align: left; }
+    select { margin-top: 0.2rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="kicker">LLM LANDSCAPE · MATCHING PRACTICE</p>
+    <h1>Match the company/country, AI product, and CEO</h1>
+    <p>For each company, choose the AI product it makes and the person who leads it. Click <strong>Check my answers</strong> when you're done.</p>
+  </header>
+
+  <div class="intro">
+    <p>Large language models don't exist in a vacuum — each one is built and released by a company, and each company has a CEO. Use what you've learned about the LLM landscape to complete the table below.</p>
+  </div>
+
+  <div class="board">
+    <table class="match" id="matchTable">
+      <thead>
+        <tr>
+          <th style="width:26%">Company/Country</th>
+          <th style="width:32%">AI Product / LLM</th>
+          <th style="width:32%">CEO</th>
+          <th style="width:10%">✓</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-product="ChatGPT" data-ceo="Sam Altman">
+          <td class="company-cell">
+            <div class="badge" style="background:#10A37F;">AI</div>
+            <span class="company-name">OpenAI</span>
+          </td>
+          <td>
+            <select class="product-select"><option value="">Choose a product…</option></select>
+          </td>
+          <td>
+            <select class="ceo-select"><option value="">Choose a CEO…</option></select>
+          </td>
+          <td class="feedback-cell"></td>
+        </tr>
+        <tr data-product="Claude" data-ceo="Dario Amodei">
+          <td class="company-cell">
+            <div class="badge" style="background:var(--az-red);">AT</div>
+            <span class="company-name">Anthropic</span>
+          </td>
+          <td>
+            <select class="product-select"><option value="">Choose a product…</option></select>
+          </td>
+          <td>
+            <select class="ceo-select"><option value="">Choose a CEO…</option></select>
+          </td>
+          <td class="feedback-cell"></td>
+        </tr>
+        <tr data-product="Gemini" data-ceo="Demis Hassabis">
+          <td class="company-cell">
+            <div class="badge" style="background:#4285F4;">GD</div>
+            <span class="company-name">Google DeepMind</span>
+          </td>
+          <td>
+            <select class="product-select"><option value="">Choose a product…</option></select>
+          </td>
+          <td>
+            <select class="ceo-select"><option value="">Choose a CEO…</option></select>
+          </td>
+          <td class="feedback-cell"></td>
+        </tr>
+        <tr data-product="Grok" data-ceo="Elon Musk">
+          <td class="company-cell">
+            <div class="badge" style="background:#1A1A1A;">xAI</div>
+            <span class="company-name">xAI</span>
+          </td>
+          <td>
+            <select class="product-select"><option value="">Choose a product…</option></select>
+          </td>
+          <td>
+            <select class="ceo-select"><option value="">Choose a CEO…</option></select>
+          </td>
+          <td class="feedback-cell"></td>
+        </tr>
+        <tr data-product="DeepSeek" data-ceo="Liang Wenfeng" class="bonus-row">
+          <td class="company-cell">
+            <div class="badge" style="background:#DE2910;">CN</div>
+            <span class="company-name">China<span class="bonus-label">BONUS</span></span>
+          </td>
+          <td>
+            <select class="product-select"><option value="">Choose a product…</option></select>
+          </td>
+          <td>
+            <select class="ceo-select"><option value="">Choose a CEO…</option></select>
+          </td>
+          <td class="feedback-cell"></td>
+        </tr>
+        <tr data-product="GPUs" data-ceo="Jensen Huang" class="bonus-row">
+          <td class="company-cell">
+            <div class="badge" style="background:#76B900;">NV</div>
+            <span class="company-name">Nvidia<span class="bonus-label">BONUS</span></span>
+          </td>
+          <td>
+            <select class="product-select"><option value="">Choose a product…</option></select>
+          </td>
+          <td>
+            <select class="ceo-select"><option value="">Choose a CEO…</option></select>
+          </td>
+          <td class="feedback-cell"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="controls">
+    <button id="checkBtn">Check my answers</button>
+    <button id="resetBtn">Reset</button>
+    <span id="score"></span>
+  </div>
+
+  <div class="notes" id="notesBox">
+    <h2>Correct pairings</h2>
+    <ul id="notesList"></ul>
+  </div>
+
+</div>
+
+<script>
+  const products = ["ChatGPT", "Claude", "Gemini", "Grok", "DeepSeek", "GPUs"];
+  const ceos = ["Sam Altman", "Dario Amodei", "Demis Hassabis", "Elon Musk", "Liang Wenfeng", "Jensen Huang"];
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function fillSelect(select, options) {
+    shuffle(options).forEach(opt => {
+      const o = document.createElement("option");
+      o.value = opt;
+      o.textContent = opt;
+      select.appendChild(o);
+    });
+  }
+
+  document.querySelectorAll(".product-select").forEach(s => fillSelect(s, products));
+  document.querySelectorAll(".ceo-select").forEach(s => fillSelect(s, ceos));
+
+  const rows = document.querySelectorAll("#matchTable tbody tr");
+  const checkBtn = document.getElementById("checkBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const scoreEl = document.getElementById("score");
+  const notesBox = document.getElementById("notesBox");
+  const notesList = document.getElementById("notesList");
+
+  checkBtn.addEventListener("click", () => {
+    let correct = 0;
+    let answered = 0;
+    rows.forEach(row => {
+      const productSel = row.querySelector(".product-select");
+      const ceoSel = row.querySelector(".ceo-select");
+      const feedback = row.querySelector(".feedback-cell");
+      const wantProduct = row.dataset.product;
+      const wantCeo = row.dataset.ceo;
+
+      row.classList.remove("is-correct", "is-incorrect");
+
+      if (!productSel.value || !ceoSel.value) {
+        feedback.textContent = "";
+        return;
+      }
+      answered++;
+      const rowCorrect = productSel.value === wantProduct && ceoSel.value === wantCeo;
+      if (rowCorrect) {
+        correct++;
+        row.classList.add("is-correct");
+        feedback.textContent = "✅";
+      } else {
+        row.classList.add("is-incorrect");
+        feedback.textContent = "❌";
+      }
+    });
+
+    scoreEl.innerHTML = `Score: ${correct} <span class="max">/ ${rows.length}</span>`;
+
+    if (correct === rows.length) {
+      notesList.innerHTML = "";
+      notesBox.classList.remove("visible");
+    } else {
+      notesList.innerHTML = "";
+      rows.forEach(row => {
+        if (!row.classList.contains("is-correct")) {
+          const li = document.createElement("li");
+          const companyName = row.querySelector(".company-name").firstChild.textContent.trim();
+          li.textContent = `${companyName} → ${row.dataset.product} (led by ${row.dataset.ceo})`;
+          notesList.appendChild(li);
+        }
+      });
+      if (answered === rows.length) {
+        notesBox.classList.add("visible");
+      }
+    }
+  });
+
+  resetBtn.addEventListener("click", () => {
+    rows.forEach(row => {
+      row.querySelector(".product-select").value = "";
+      row.querySelector(".ceo-select").value = "";
+      row.querySelector(".feedback-cell").textContent = "";
+      row.classList.remove("is-correct", "is-incorrect");
+    });
+    scoreEl.textContent = "";
+    notesBox.classList.remove("visible");
+  });
+</script>
+
+</body>
+</html>
